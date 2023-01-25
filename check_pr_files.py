@@ -63,7 +63,7 @@ def compare_branch_files(owner, repo, pr_number, token):
             print(f"WARNING: A file with the same version number prefix '{pull_request_file_version}' already exists in the main branch: {file['filename']}")
 
 # Github token
-token = "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"
+token = "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"
 
 # Repository owner and name
 owner = "Akhilkrishna415"
