@@ -1,18 +1,23 @@
-name: Extract files from PR
+name: Compare files in PR and Main Branch
 on:
   pull_request:
     types: [opened, synchronize]
 
 jobs:
-  extract_files:
+  compare_files:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-    - name: Extract files
+    - name: Compare files
       run: |
-        git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.head.sha }} > files.txt
-        while read line; do
-          mkdir -p $(dirname $line)
-          mv $line extracted_files/$line
-        done < files.txt
+        pr_files=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.head.sha }})
+        main_files=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.base.sha }})
+        for line in $pr_files; do
+          # Extract the unique number prefix from the file name
+          prefix=$(echo $line | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
+          if echo "$main_files" | grep -q "^[vmu]$prefix"; then
+            echo "A file with prefix $prefix already exists in main branch. Blocking pull request from merging."
+            exit 1
+          fi
+        done
