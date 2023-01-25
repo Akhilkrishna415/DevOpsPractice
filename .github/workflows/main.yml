@@ -13,11 +13,20 @@ jobs:
       run: |
         pr_files=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.head.sha }})
         main_files=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.base.sha }})
+        echo "Pull Request Files: $pr_files"
+        echo "Main Branch Files: $main_files"
         for line in $pr_files; do
           # Extract the unique number prefix from the file name
           prefix=$(echo $line | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
+          echo "Checking prefix: $prefix"
           if echo "$main_files" | grep -q "^[vmu]$prefix"; then
             echo "A file with prefix $prefix already exists in main branch. Blocking pull request from merging."
             exit 1
           fi
         done
+        
+
+
+
+
+
