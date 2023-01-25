@@ -1,0 +1,41 @@
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    types: [opened, reopened, closed]
+    branches:
+    - main
+    paths:
+    - file_pattern_test/*
+
+jobs:
+  check_pr_files:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+    - name: Run script
+      run: |
+        python check_pr_files.py
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Block PR if warning found
+      if: failure()
+      run: |
+        echo "A warning was found, blocking the pull request."
+        git rev-parse --verify HEAD
+        git update-ref refs/heads/main HEAD
+        git symbolic-ref refs/remotes/origin/HEAD refs/heads/main
+        git reset
+        git checkout main
+        git branch -D ${GITHUB_HEAD_REF}
