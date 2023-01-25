@@ -28,7 +28,7 @@ jobs:
       run: |
         python check_pr_files.py
       env:
-        GITHUB_TOKEN: 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
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Block PR if warning found
       if: failure()
       run: |
