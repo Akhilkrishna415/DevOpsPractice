@@ -24,6 +24,16 @@ jobs:
             exit 1
           fi
         done
+  get_file_names:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Get file names
+      run: |
+        pr_files=$(find . -type f -not -path '*/\.*')
+        echo "Pull Request Files: $pr_files"
+  
         
 
 
