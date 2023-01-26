@@ -35,7 +35,7 @@ jobs:
         pr_files=$(find . -type f -not -path '*/\.*')
         echo "Pull Request Files: $pr_files"
         for file in $pr_files; do
-          prefix=$(echo $file | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
+          prefix=$(echo $file | sed 's/^.\///' | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
           echo "File name: $file, Prefix: $prefix"
         done
   
