@@ -12,8 +12,7 @@ jobs:
     - name: Compare files
       run: |
         token=${{ secrets.GITHUB_TOKEN }}
-        pr_number=${{ github.event.pull_request.number }}
-        pr_files_url="https://api.github.com/repos/${{ github.repository }}/pulls/$pr_number/files"
+        pr_files_url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
         pr_files=$(curl -H "Authorization: token $token" $pr_files_url)        
         distinct_pr_files=$(echo "$pr_files" | grep "file_pattern_test" | tr ' ' '\n' | sort -u)
         for file in ${distinct_pr_files}; do
