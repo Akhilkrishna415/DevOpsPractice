@@ -20,10 +20,20 @@ jobs:
           prefix=$(echo $line | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
           echo "Checking prefix: $prefix"
           if echo "$main_files" | grep -q "^[vmu]$prefix"; then
-            echo "A file with prefix $prefix already exists in main branch. Blocking pull request from merging."
+            echo "A file with prefix $prefix already exists in main branch. Incrementing version number."
+            # Increment the version number of the file
+            new_version=$((prefix + 1))
+            sed -i "s/^[vmu]$prefix/[vmu]$new_version/g" $line
+            git add $line
+            git commit -m "Increment version number of $line to $new_version"
+          else
+            echo "A file with prefix $prefix does not exist in main branch. Blocking pull request from merging."
             exit 1
           fi
         done
+    - name: Push changes
+      run: git push
+      
   get_file_names:
     runs-on: ubuntu-latest
     steps:
