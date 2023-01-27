@@ -12,29 +12,24 @@ jobs:
     - name: Compare files
       run: |
         pr_files=$(git log --pretty=format: --name-only --diff-filter=AMR --no-merges ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }})
-        main_files=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.base.sha }})
-        echo "Pull Request Files: $pr_files"
-        echo "Main Branch Files: $main_files"
         distinct_pr_files=$(echo "$pr_files" | grep "file_pattern_test" | tr ' ' '\n' | sort -u)
-        echo "Distinct Pull Request Files: $distinct_pr_files"
-        for line in $distinct_pr_files; do
-          # Extract the unique number prefix from the file name
-          prefix=$(echo $line | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
-          echo "Checking prefix: $prefix"
-          if echo "$main_files" | grep -q "^[vmu]$prefix"; then
-            echo "A file with prefix $prefix already exists in main branch. Incrementing version number."
-            # Increment the version number of the file
-            new_version=$((prefix + 1))
-            sed -i "s/^[vmu]$prefix/[vmu]$new_version/g" $line
-            git add $line
-            git commit -m "Increment version number of $line to $new_version"
-          else
-            echo "A file with prefix $prefix does not exist in main branch. Allowing pull request to merge."
-            exit 0
-          fi
+        for file in ${distinct_pr_files}; do
+          path=$(dirname $file)
+          echo "Folder: $path"
+          pr_prefix=$(basename "$file" | cut -d'_' -f1)
+          pr_prefexes=$pr_prefix
+          version=$(git show HEAD:$path)
+          main_prefix=$(basename "$version" | cut -d'_' -f1)
+            if [ "$pr_prefix" == "$main_prefix" ]; then
+                echo "prefixes matched. Setting status check to failure"
+                # Set the commit status to failure using the Github API
+                curl -H "Authorization: ${{ secrets.GITHUB_TOKEN }}" -X PUT -d '{"state": "failure", "context": "required", "description": "The prefixes of the files in the PR match those in the main branch. Please update the prefix before merging."}' https://api.github.com/repos/${{ github.repository }}/statuses/${{github.event.pull_request.head.sha}}
+            else
+                echo "prefixes do not match. Setting status check to success"
+                # Set the commit status to success using the Github API
+                curl -H "Authorization: ${{ secrets.GITHUB_TOKEN }}" -X PUT -d '{"state": "success", "context": "required", "description": "The prefixes of the files in the PR do not match those in the main branch. You can merge."}' https://api.github.com/repos/${{ github.repository }}/statuses/${{github.event.pull_request.head.sha}}
+            fi
         done
-    - name: Push changes
-      run: git push
       
   get_file_names:
     runs-on: ubuntu-latest
