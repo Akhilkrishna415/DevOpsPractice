@@ -15,7 +15,9 @@ jobs:
         main_files=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.pull_request.base.sha }})
         echo "Pull Request Files: $pr_files"
         echo "Main Branch Files: $main_files"
-        for line in $pr_files; do
+        distinct_pr_files=$(echo "$pr_files" | grep "file_pattern_test" | tr ' ' '\n' | sort -u)
+        echo "Distinct Pull Request Files: $distinct_pr_files"
+        for line in $distinct_pr_files; do
           # Extract the unique number prefix from the file name
           prefix=$(echo $line | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
           echo "Checking prefix: $prefix"
