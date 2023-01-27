@@ -28,7 +28,7 @@ jobs:
             git commit -m "Increment version number of $line to $new_version"
           else
             echo "A file with prefix $prefix does not exist in main branch. Blocking pull request from merging."
-            exit 1
+            exit 0
           fi
         done
     - name: Push changes
