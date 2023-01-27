@@ -24,27 +24,15 @@ jobs:
                 echo "prefixes matched. Setting status check to failure"
                 # Set the commit status to failure using the Github API
                 curl -H "Authorization: ${{ secrets.GITHUB_TOKEN }}" -X PUT -d '{"state": "failure", "context": "required", "description": "The prefixes of the files in the PR match those in the main branch. Please update the prefix before merging."}' https://api.github.com/repos/${{ github.repository }}/statuses/${{github.event.pull_request.head.sha}}
+                exit 1
             else
                 echo "prefixes do not match. Setting status check to success"
                 # Set the commit status to success using the Github API
                 curl -H "Authorization: ${{ secrets.GITHUB_TOKEN }}" -X PUT -d '{"state": "success", "context": "required", "description": "The prefixes of the files in the PR do not match those in the main branch. You can merge."}' https://api.github.com/repos/${{ github.repository }}/statuses/${{github.event.pull_request.head.sha}}
+                exit 0
             fi
         done
       
-  get_file_names:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Get file names
-      run: |
-        cd file_pattern_test
-        pr_files=$(find . -type f -not -path '*/\.*')
-        echo "Pull Request Files: $pr_files"
-        for file in $pr_files; do
-          prefix=$(echo $file | sed 's/^.\///' | grep -o -E '^[vmu][0-9]+'|sed 's/[vmu]//')
-          echo "File name: $file, Prefix: $prefix"
-        done
   
         
 
